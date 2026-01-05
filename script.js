@@ -82,6 +82,11 @@ function update() {
 
 /* ================= DRAW ================= */
 function draw() {
+  if (isGameOver) {
+    drawGameOver();
+    return;
+  }
+
   ctx.clearRect(0, 0, logicalWidth, logicalHeight);
 
   ctx.drawImage(backgroundImg, bgX, 0, logicalWidth + 5, logicalHeight);
@@ -161,8 +166,61 @@ function checkCollision() {
 /* ================= GAME OVER ================= */
 function gameOver() {
   isGameOver = true;
-  setTimeout(() => location.reload(), 200);
 }
+
+function drawGameOver() {
+  ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+  ctx.fillRect(0, 0, logicalWidth, logicalHeight);
+
+  ctx.font = "48px Arial Black";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = "black";
+  ctx.strokeText("GAME OVER", logicalWidth / 2, logicalHeight / 2);
+
+  ctx.fillStyle = "red";
+  ctx.fillText("GAME OVER", logicalWidth / 2, logicalHeight / 2);
+
+  ctx.font = "18px Arial";
+
+  ctx.fillStyle = "orange";
+
+  ctx.fillText(
+    `Score: ${score} pontos`,
+    logicalWidth / 2,
+    logicalHeight / 2 + 30
+  );
+
+  ctx.fillStyle = "white";
+
+  ctx.fillText(
+    "Clique para reiniciar",
+    logicalWidth / 2,
+    logicalHeight / 2 + 50
+  );
+}
+
+function resetGame() {
+  // bird
+  bird.x = 80;
+  bird.y = 150;
+  bird.vy = 0;
+
+  // pipe
+  pipe.x = logicalWidth;
+  pipe.topHeight = randomPipeHeight();
+
+  // world
+  bgX = 0;
+  floorX = 0;
+
+  // state
+  score = 0;
+  isGameOver = false;
+}
+
 
 /* ================= LOOP ================= */
 function loop() {
@@ -173,6 +231,11 @@ function loop() {
 
 /* ================= INPUT ================= */
 document.addEventListener("click", () => {
+  if (isGameOver) {
+    resetGame();
+    return;
+  }
+
   bird.vy = -3;
 });
 
