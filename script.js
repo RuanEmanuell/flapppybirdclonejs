@@ -14,6 +14,9 @@ canvas.style.height = logicalHeight + "px";
 
 ctx.scale(dpr, dpr);
 
+const scale = Math.min(window.innerWidth / 360, window.innerHeight / 640, 1.5);
+canvas.style.transform = `scale(${scale})`;
+
 const TARGET_FPS = 60;
 const FRAME_TIME = 1000 / TARGET_FPS;
 
@@ -34,8 +37,41 @@ const backgroundImg = new Image();
 backgroundImg.src = "./public/background.png";
 
 /* ================= SONS ================= */
-const flapSound = new Audio("./public/sounds/flap.mp3");
-const scoreSound = new Audio("./public/sounds/score.mp3");
+const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+const audioCtx = new AudioContextClass();
+
+let flapBuffer;
+let scoreBuffer;
+
+async function loadSound(url) {
+  const res = await fetch(url);
+  const arrayBuffer = await res.arrayBuffer();
+  return await audioCtx.decodeAudioData(arrayBuffer);
+}
+
+Promise.all([
+  loadSound("./public/sounds/flap.mp3"),
+  loadSound("./public/sounds/score.mp3")
+]).then(([flap, score]) => {
+  flapBuffer = flap;
+  scoreBuffer = score;
+});
+
+function playSound(buffer, volume = 1) {
+  if (!buffer || audioCtx.state !== "running") return;
+
+  const source = audioCtx.createBufferSource();
+  source.buffer = buffer;
+
+  const gain = audioCtx.createGain();
+  gain.gain.value = volume;
+
+  source.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  source.start(0);
+}
+
 
 /* ================= WORLD ================= */
 const FLOOR_HEIGHT = 120;
@@ -71,12 +107,6 @@ function randomPipeHeight() {
   return Math.floor(Math.random() * (max - min) + min);
 }
 
-function playSound(sound) {
-  const s = sound.cloneNode();
-  s.volume = sound.volume;
-  s.play();
-}
-
 /* ================= UPDATE ================= */
 function update() {
   if (isGameOver) return;
@@ -95,7 +125,7 @@ function update() {
     pipe.x = logicalWidth;
     pipe.topHeight = randomPipeHeight();
     score++;
-    playSound(scoreSound);
+  playSound(scoreBuffer);
   }
 
   checkCollision();
@@ -270,9 +300,15 @@ document.addEventListener("click", () => {
     return;
   }
 
-  playSound(flapSound);
-
+  playSound(flapBuffer, 0.6);
   bird.vy = -6;
 });
+
+document.addEventListener("click", () => {
+  if (audioCtx.state === "suspended") {
+    audioCtx.resume();
+  }
+}, { once: true });
+
 
 requestAnimationFrame(loop);
