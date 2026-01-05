@@ -120,11 +120,6 @@ function update() {
 
 /* ================= DRAW ================= */
 function draw() {
-  if (isGameOver) {
-    drawGameOver();
-    return;
-  }
-
   ctx.clearRect(0, 0, logicalWidth, logicalHeight);
 
   ctx.drawImage(backgroundImg, 0, 0, logicalWidth, logicalHeight);
@@ -150,6 +145,11 @@ function draw() {
 
   ctx.fillStyle = "orange";
   ctx.fillText(text, x, y);
+
+  if (isGameOver) {
+    drawGameOver();
+    return;
+  }
 }
 
 /* ================= PIPES ================= */
@@ -206,37 +206,18 @@ function gameOver() {
 }
 
 function drawGameOver() {
-  ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+  ctx.fillStyle = "rgba(0,0,0,0.6)";
   ctx.fillRect(0, 0, logicalWidth, logicalHeight);
 
+  ctx.fillStyle = "red";
   ctx.font = "48px Arial Black";
   ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
+  ctx.fillText("GAME OVER", logicalWidth / 2, logicalHeight / 2 - 20);
 
-  ctx.lineWidth = 4;
-  ctx.strokeStyle = "black";
-  ctx.strokeText("GAME OVER", logicalWidth / 2, logicalHeight / 2);
-
-  ctx.fillStyle = "red";
-  ctx.fillText("GAME OVER", logicalWidth / 2, logicalHeight / 2);
-
-  ctx.font = "18px Arial";
-
-  ctx.fillStyle = "orange";
-
-  ctx.fillText(
-    `Score: ${score} pontos`,
-    logicalWidth / 2,
-    logicalHeight / 2 + 30
-  );
-
+  ctx.font = "24px Arial";
   ctx.fillStyle = "white";
-
-  ctx.fillText(
-    "Clique para reiniciar",
-    logicalWidth / 2,
-    logicalHeight / 2 + 50
-  );
+  ctx.fillText(`Score: ${score} pontos`, logicalWidth / 2, logicalHeight / 2 + 20);
+  ctx.fillText("Clique para reiniciar", logicalWidth / 2, logicalHeight / 2 + 50);
 }
 
 function resetGame() {
