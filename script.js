@@ -3,8 +3,8 @@ const dpr = window.devicePixelRatio || 1;
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-const logicalWidth = 500;
-const logicalHeight = 500;
+const logicalWidth = 360;
+const logicalHeight = 640;
 
 canvas.width = logicalWidth * dpr;
 canvas.height = logicalHeight * dpr;
@@ -13,6 +13,12 @@ canvas.style.width = logicalWidth + "px";
 canvas.style.height = logicalHeight + "px";
 
 ctx.scale(dpr, dpr);
+
+const TARGET_FPS = 60;
+const FRAME_TIME = 1000 / TARGET_FPS;
+
+let lastTime = 0;
+let accumulator = 0;
 
 /* ================= IMAGENS ================= */
 const birdImg = new Image();
@@ -26,6 +32,20 @@ floorImg.src = "./public/floor.png";
 
 const backgroundImg = new Image();
 backgroundImg.src = "./public/background.png";
+
+/* ================= SONS ================= */
+const flapSound = new Audio("./public/sounds/flap.mp3");
+const scoreSound = new Audio("./public/sounds/score.mp3");
+
+/* ================= WORLD ================= */
+const FLOOR_HEIGHT = 120;
+const groundY = logicalHeight - FLOOR_HEIGHT;
+
+let floorX = 0;
+let bgX = 0;
+
+let score = 0;
+let isGameOver = false;
 
 /* ================= BIRD ================= */
 let bird = {
@@ -44,17 +64,11 @@ let pipe = {
   topHeight: randomPipeHeight()
 };
 
-/* ================= WORLD ================= */
-const groundY = 430;
-let floorX = 0;
-let bgX = 0;
-
-let score = 0;
-let isGameOver = false;
-
 /* ================= UTILS ================= */
 function randomPipeHeight() {
-  return Math.floor(Math.random() * (300 - 60) + 60);
+  const min = 80;
+  const max = groundY - 120 - min;
+  return Math.floor(Math.random() * (max - min) + min);
 }
 
 /* ================= UPDATE ================= */
@@ -67,14 +81,17 @@ function update() {
   floorX -= 2;
   if (floorX <= -logicalWidth) floorX = 0;
 
-  bird.vy += 0.1;
+  bird.vy += 0.5;
   bird.y += bird.vy;
 
-  pipe.x -= 2 + score * 0.2;
+  pipe.x -= 3 + score * 0.2;
   if (pipe.x + pipe.width < 0) {
     pipe.x = logicalWidth;
     pipe.topHeight = randomPipeHeight();
     score++;
+    scoreSound.currentTime = 0;
+    scoreSound.play();
+
   }
 
   checkCollision();
@@ -203,31 +220,44 @@ function drawGameOver() {
 }
 
 function resetGame() {
-  // bird
+  // BIRD
   bird.x = 80;
   bird.y = 150;
   bird.vy = 0;
 
-  // pipe
+  // PIPE
   pipe.x = logicalWidth;
   pipe.topHeight = randomPipeHeight();
 
-  // world
+  // WORLD
   bgX = 0;
   floorX = 0;
 
-  // state
+  // STATE
   score = 0;
   isGameOver = false;
 }
 
 
 /* ================= LOOP ================= */
-function loop() {
-  update();
-  draw();
+function loop(time) {
+  if (!lastTime) lastTime = time;
+
+  const delta = time - lastTime;
+  lastTime = time;
+
+  accumulator += delta;
+
+  while (accumulator >= FRAME_TIME) {
+    update();          
+    accumulator -= FRAME_TIME;
+  }
+
+  draw();              
+
   requestAnimationFrame(loop);
 }
+
 
 /* ================= INPUT ================= */
 document.addEventListener("click", () => {
@@ -236,7 +266,10 @@ document.addEventListener("click", () => {
     return;
   }
 
-  bird.vy = -3;
+  flapSound.currentTime = 0;
+  flapSound.play();
+
+  bird.vy = -6;
 });
 
-loop();
+requestAnimationFrame(loop);
