@@ -78,7 +78,6 @@ const FLOOR_HEIGHT = 120;
 const groundY = logicalHeight - FLOOR_HEIGHT;
 
 let floorX = 0;
-let bgX = 0;
 
 let score = 0;
 let isGameOver = false;
@@ -111,9 +110,6 @@ function randomPipeHeight() {
 function update() {
   if (isGameOver) return;
 
-  bgX -= 0.5;
-  if (bgX <= -logicalWidth) bgX = 0;
-
   floorX -= 2;
   if (floorX <= -logicalWidth) floorX = 0;
 
@@ -140,8 +136,7 @@ function draw() {
 
   ctx.clearRect(0, 0, logicalWidth, logicalHeight);
 
-  ctx.drawImage(backgroundImg, bgX, 0, logicalWidth + 5, logicalHeight);
-  ctx.drawImage(backgroundImg, bgX + logicalWidth, 0, logicalWidth, logicalHeight);
+  ctx.drawImage(backgroundImg, 0, 0, logicalWidth, logicalHeight);
 
   drawPipes();
 
@@ -264,7 +259,6 @@ function resetGame() {
   pipe.topHeight = randomPipeHeight();
 
   // WORLD
-  bgX = 0;
   floorX = 0;
 
   // STATE
@@ -295,20 +289,18 @@ function loop(time) {
 
 /* ================= INPUT ================= */
 document.addEventListener("click", () => {
-  if (isGameOver) {
-    resetGame();
-    return;
-  }
-
-  playSound(flapBuffer, 0.6);
-  bird.vy = -6;
-});
-
-document.addEventListener("click", () => {
   if (audioCtx.state === "suspended") {
     audioCtx.resume();
   }
-}, { once: true });
+
+  if (isGameOver) {
+    resetGame();
+  } else {
+    playSound(flapBuffer, 0.6);
+    bird.vy = -6;
+  }
+});
+
 
 
 requestAnimationFrame(loop);
