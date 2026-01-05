@@ -1,14 +1,25 @@
+const dpr = window.devicePixelRatio || 1;
+
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-canvas.width = 500;
-canvas.height = 500;
+
+const logicalWidth = 500;
+const logicalHeight = 500;
+
+canvas.width = logicalWidth * dpr;
+canvas.height = logicalHeight * dpr;
+
+canvas.style.width = logicalWidth + "px";
+canvas.style.height = logicalHeight + "px";
+
+ctx.scale(dpr, dpr);
 
 /* ================= IMAGENS ================= */
 const birdImg = new Image();
 birdImg.src = "./public/bird.png";
 
 const pipeImg = new Image();
-pipeImg.src = "./public/pipe.png"; // PIPE DE CIMA
+pipeImg.src = "./public/pipe.png";
 
 const floorImg = new Image();
 floorImg.src = "./public/floor.png";
@@ -27,7 +38,7 @@ let bird = {
 
 /* ================= PIPE ================= */
 let pipe = {
-  x: canvas.width,
+  x: logicalWidth,
   width: 70,
   gap: 120,
   topHeight: randomPipeHeight()
@@ -50,22 +61,18 @@ function randomPipeHeight() {
 function update() {
   if (isGameOver) return;
 
-  // Background
   bgX -= 0.5;
-  if (bgX <= -canvas.width) bgX = 0;
+  if (bgX <= -logicalWidth) bgX = 0;
 
-  // Floor
   floorX -= 2;
-  if (floorX <= -canvas.width) floorX = 0;
+  if (floorX <= -logicalWidth) floorX = 0;
 
-  // Bird
-  bird.vy += 0.05;
+  bird.vy += 0.1;
   bird.y += bird.vy;
 
-  // Pipe
-  pipe.x -= 2 + (score * 0.2);
+  pipe.x -= 2 + score * 0.2;
   if (pipe.x + pipe.width < 0) {
-    pipe.x = canvas.width;
+    pipe.x = logicalWidth;
     pipe.topHeight = randomPipeHeight();
     score++;
   }
@@ -75,67 +82,47 @@ function update() {
 
 /* ================= DRAW ================= */
 function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, logicalWidth, logicalHeight);
 
-  // Background
-  ctx.drawImage(backgroundImg, bgX, 0, canvas.width, canvas.height);
-  ctx.drawImage(backgroundImg, bgX + canvas.width, 0, canvas.width, canvas.height);
+  ctx.drawImage(backgroundImg, bgX, 0, logicalWidth + 5, logicalHeight);
+  ctx.drawImage(backgroundImg, bgX + logicalWidth, 0, logicalWidth, logicalHeight);
 
-  // Pipes
   drawPipes();
 
-  // Bird
   ctx.drawImage(birdImg, bird.x, bird.y, bird.w, bird.h);
 
-  // Floor
-  ctx.drawImage(floorImg, floorX, groundY, canvas.width + 20, 120);
-  ctx.drawImage(floorImg, floorX + canvas.width, groundY, canvas.width + 20, 120);
+  ctx.drawImage(floorImg, floorX, groundY, logicalWidth + 5, 120);
+  ctx.drawImage(floorImg, floorX + logicalWidth, groundY, logicalWidth, 120);
 
-    //Score
-    ctx.font = "32px Arial";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "top";
+  ctx.font = "32px Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
 
-    const text = `${score}`;
-    const x = canvas.width / 2;
-    const y = 40;
+  const text = `${score}`;
+  const x = logicalWidth / 2;
+  const y = 40;
 
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = "black";
-    ctx.strokeText(text, x, y);
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = "black";
+  ctx.strokeText(text, x, y);
 
-    ctx.fillStyle = "orange";
-    ctx.fillText(text, x, y);
+  ctx.fillStyle = "orange";
+  ctx.fillText(text, x, y);
 }
 
 /* ================= PIPES ================= */
 function drawPipes() {
-  // PIPE DE CIMA (invertido)
   ctx.save();
   ctx.translate(pipe.x, pipe.topHeight);
   ctx.scale(1, -1);
-  ctx.drawImage(
-    pipeImg,
-    0,
-    0,
-    pipe.width,
-    pipe.topHeight
-  );
+  ctx.drawImage(pipeImg, 0, 0, pipe.width, pipe.topHeight);
   ctx.restore();
 
-  // PIPE DE BAIXO (normal)
   const bottomY = pipe.topHeight + pipe.gap;
   const bottomHeight = groundY - bottomY;
 
-  ctx.drawImage(
-    pipeImg,
-    pipe.x,
-    bottomY,
-    pipe.width,
-    bottomHeight
-  );
+  ctx.drawImage(pipeImg, pipe.x, bottomY, pipe.width, bottomHeight);
 }
-
 
 /* ================= COLLISION ================= */
 function rectsCollide(a, b) {
@@ -174,8 +161,7 @@ function checkCollision() {
 /* ================= GAME OVER ================= */
 function gameOver() {
   isGameOver = true;
-  alert("Game Over");
-  location.reload();
+  setTimeout(() => location.reload(), 200);
 }
 
 /* ================= LOOP ================= */
@@ -187,7 +173,7 @@ function loop() {
 
 /* ================= INPUT ================= */
 document.addEventListener("click", () => {
-  bird.vy = -2.5;
+  bird.vy = -3;
 });
 
 loop();
