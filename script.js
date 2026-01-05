@@ -37,41 +37,32 @@ const backgroundImg = new Image();
 backgroundImg.src = "./public/background.png";
 
 /* ================= SONS ================= */
-const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-const audioCtx = new AudioContextClass();
+const flapSound = new Audio("./public/sounds/flap.mp3");
+const scoreSound = new Audio("./public/sounds/score.mp3");
 
-let flapBuffer;
-let scoreBuffer;
+flapSound.preload = "auto";
+scoreSound.preload = "auto";
 
-async function loadSound(url) {
-  const res = await fetch(url);
-  const arrayBuffer = await res.arrayBuffer();
-  return await audioCtx.decodeAudioData(arrayBuffer);
+let canPlayFlap = true;
+const flapCooldown = 250; 
+
+function playFlap() {
+  if (!canPlayFlap) return;
+
+  canPlayFlap = false;
+
+  flapSound.currentTime = 0;
+  flapSound.play().catch(e => console.log(e));
+
+  setTimeout(() => {
+    canPlayFlap = true;
+  }, flapCooldown);
 }
 
-Promise.all([
-  loadSound("./public/sounds/flap.mp3"),
-  loadSound("./public/sounds/score.mp3")
-]).then(([flap, score]) => {
-  flapBuffer = flap;
-  scoreBuffer = score;
-});
-
-function playSound(buffer, volume = 1) {
-  if (!buffer || audioCtx.state !== "running") return;
-
-  const source = audioCtx.createBufferSource();
-  source.buffer = buffer;
-
-  const gain = audioCtx.createGain();
-  gain.gain.value = volume;
-
-  source.connect(gain);
-  gain.connect(audioCtx.destination);
-
-  source.start(0);
+function playScore() {
+  scoreSound.currentTime = 0;
+  scoreSound.play();
 }
-
 
 /* ================= WORLD ================= */
 const FLOOR_HEIGHT = 120;
@@ -95,7 +86,7 @@ let bird = {
 let pipe = {
   x: logicalWidth,
   width: 70,
-  gap: 120,
+  gap: 160,
   topHeight: randomPipeHeight()
 };
 
@@ -113,7 +104,7 @@ function update() {
   floorX -= 2;
   if (floorX <= -logicalWidth) floorX = 0;
 
-  bird.vy += 0.5;
+  bird.vy += 0.4;
   bird.y += bird.vy;
 
   pipe.x -= 3 + score * 0.2;
@@ -121,7 +112,7 @@ function update() {
     pipe.x = logicalWidth;
     pipe.topHeight = randomPipeHeight();
     score++;
-  playSound(scoreBuffer);
+    playScore();
   }
 
   checkCollision();
@@ -292,11 +283,9 @@ document.addEventListener("click", () => {
   if (isGameOver) {
     resetGame();
   } else {
-    playSound(flapBuffer, 0.6);
-    bird.vy = -6;
+    bird.vy = -8;
+    playFlap();
   }
 });
-
-
 
 requestAnimationFrame(loop);
