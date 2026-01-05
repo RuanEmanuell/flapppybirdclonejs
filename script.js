@@ -289,10 +289,6 @@ function loop(time) {
 
 /* ================= INPUT ================= */
 document.addEventListener("click", () => {
-  if (audioCtx.state === "suspended") {
-    audioCtx.resume();
-  }
-
   if (isGameOver) {
     resetGame();
   } else {
