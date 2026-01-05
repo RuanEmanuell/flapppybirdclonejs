@@ -71,6 +71,12 @@ function randomPipeHeight() {
   return Math.floor(Math.random() * (max - min) + min);
 }
 
+function playSound(sound) {
+  const s = sound.cloneNode();
+  s.volume = sound.volume;
+  s.play();
+}
+
 /* ================= UPDATE ================= */
 function update() {
   if (isGameOver) return;
@@ -89,9 +95,7 @@ function update() {
     pipe.x = logicalWidth;
     pipe.topHeight = randomPipeHeight();
     score++;
-    scoreSound.currentTime = 0;
-    scoreSound.play();
-
+    playSound(scoreSound);
   }
 
   checkCollision();
@@ -266,8 +270,7 @@ document.addEventListener("click", () => {
     return;
   }
 
-  flapSound.currentTime = 0;
-  flapSound.play();
+  playSound(flapSound);
 
   bird.vy = -6;
 });
