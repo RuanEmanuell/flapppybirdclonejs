@@ -1,7 +1,16 @@
 body {
-    margin: 0;
+  margin: 0;
+  height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: #353535;
 }
 
 #canvas {
-    border: 5px solid black;
+  width: 100%;
+  max-width: 1020px;
+  border: 5px solid black;
 }
